@@ -19,10 +19,11 @@ class Song:
         3. If still multiple files match, flavor files with extensions like .mp3 or .flac
         """
 
+        supported_extensions = ('flac', 'm4a', 'mp3')
         candidates:list[str] = []
         for root, _, files in os.walk(base_dir):
             for file in files:
-                if self.metadata.title.lower() in file.lower():
+                if file.lower().endswith(supported_extensions) and self.metadata.title.lower() in file.lower():
                     candidates.append(os.path.join(root, file))
         
         if not candidates:

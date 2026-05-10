@@ -1,8 +1,12 @@
 import dataclasses
+import time
 import requests
 import json
+import os
+from pathlib import Path
 
 ENDPOINT = "https://api.paugram.com/netease/"
+CACHE_DIR = Path.home() / ".cache" / "ncmMetaExtract"
 
 @dataclasses.dataclass
 class Metadata:
@@ -33,12 +37,40 @@ class Metadata:
         if not self.id:
             raise ValueError("ID is required to fetch metadata")
         
+        # Try to load from cache first
+        cache_file = CACHE_DIR / f"{self.id}.json"
+        if cache_file.exists():
+            try:
+                with open(cache_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                self.populate_from_dict(data)
+                return
+            except (json.JSONDecodeError, IOError):
+                # If cache is corrupted, proceed to fetch from server
+                pass
+        
+        # Fetch from remote server
         resp = requests.get(f"{ENDPOINT}?id={self.id}")
+        while resp.status_code == 429:
+            # Handle rate limiting by waiting and retrying
+            print(f"[WARNING]: Rate limited when fetching metadata for ID {self.id}. Retrying after 5 seconds...")
+            time.sleep(5)
+            resp = requests.get(f"{ENDPOINT}?id={self.id}")
         if resp.status_code != 200:
             raise ValueError(f"Failed to fetch metadata for ID {self.id}: {resp.status_code}")
         data = resp.json()
-        if data.get("id") != self.id:
+        if str(data.get("id")) != str(self.id):
             raise ValueError(f"Fetched metadata ID {data.get('id')} does not match expected ID {self.id}")
+        
+        # Save to cache
+        try:
+            CACHE_DIR.mkdir(parents=True, exist_ok=True)
+            with open(cache_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except IOError:
+            # If caching fails, just continue without caching
+            pass
+        
         self.populate_from_dict(data)
 
 
