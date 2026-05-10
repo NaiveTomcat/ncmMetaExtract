@@ -40,7 +40,7 @@ class Song:
             return self.file_path
         
         # If still multiple candidates, look for common audio file extensions
-        audio_extensions = ['m4a']
+        audio_extensions = ['m4a', 'flac']
         for ext in audio_extensions:
             ext_candidates = [c for c in artist_candidates if c.lower().endswith(ext)]
             if len(ext_candidates) == 1:
