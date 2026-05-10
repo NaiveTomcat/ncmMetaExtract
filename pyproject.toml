@@ -1,0 +1,13 @@
+[project]
+name = "ncmmetaextract"
+version = "0.1.0"
+description = "Tool to extract metadata from NCM API and attach to files"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "requests",
+    "mutagen",
+    "argparse",
+    "pytest",
+    "pytest-cov"
+]
