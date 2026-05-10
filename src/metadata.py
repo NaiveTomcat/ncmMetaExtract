@@ -44,6 +44,7 @@ class Metadata:
                 with open(cache_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 self.populate_from_dict(data)
+                print(f"[INFO]: Loaded metadata for ID {self.id} from cache")
                 return
             except (json.JSONDecodeError, IOError):
                 # If cache is corrupted, proceed to fetch from server

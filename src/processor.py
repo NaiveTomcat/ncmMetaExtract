@@ -8,13 +8,13 @@ import os
 import subprocess
 import shutil
 
-def process_song(cover_path: str, base_dir: str, dest: str | None = None):
+def process_song(cover_path: str, base_dir: str, dest: str | None = None, delete_orphaned: bool = False):
 # Create Metadata instance from cover path
     meta = metadata.Metadata.from_cover_path(cover_path)
     try:
         meta.fetch_metadata()
     except ValueError as e:
-        print(f"Error fetching metadata: {e}")
+        print(f"[ERROR]:   Error fetching metadata: {e}")
         return
     # print(f"Fetched metadata for ID {meta.id}:")
     # print(f"Title: {meta.title}")
@@ -25,14 +25,24 @@ def process_song(cover_path: str, base_dir: str, dest: str | None = None):
     song_instance = song.Song(metadata=meta)
     file_path = song_instance.search_file_path(base_dir)
 
-    assert file_path is not None, "Failed to find song file in the specified directory"
-    print(f"[INFO]: Found song file at: {file_path}")
+    if file_path is None:
+        if delete_orphaned:
+            try:
+                os.remove(cover_path)
+                print(f"[INFO]:    Deleted orphaned cover file: {cover_path}")
+            except Exception as e:
+                print(f"[ERROR]:   Failed to delete orphaned cover file {cover_path}: {e}")
+        else:
+            print(f"[ERROR]:   Failed to find song file in the specified directory")
+        return
+    
+    print(f"[INFO]:    Found song file at: {file_path}")
 
     # assert file_path.endswith(".m4a"), "Expected file to have .m4a extension"
     if not file_path.lower().endswith(".m4a"):
-        print(f"[INFO]: File {file_path} is not in m4a format, converting...")
+        print(f"[INFO]:    File {file_path} is not in m4a format, converting...")
         file_path = convert_to_m4a(file_path, dest_dir=dest)
-        print(f"[INFO]: Converted file path: {file_path}")
+        print(f"[INFO]:    Converted file path: {file_path}")
 
     process_m4a_file(file_path, meta, dest=dest)
 
@@ -64,10 +74,10 @@ def process_m4a_file(file_path: str, meta: metadata.Metadata, dest: str | None =
             cover_data = f.read()
         audio["covr"] = [MP4Cover(cover_data, imageformat=cover_type)]
     except Exception as e:
-        print(f"[ERROR]: Error processing cover image: {e}")
+        print(f"[ERROR]:   Error processing cover image: {e}")
 
     audio.save()
-    print(f"[INFO]: Saved to: {output_path}")
+    print(f"[INFO]:    Saved to: {output_path}")
 
 
 def convert_to_m4a(file_path: str, dest_dir: str|None = None) -> str:
@@ -77,7 +87,7 @@ def convert_to_m4a(file_path: str, dest_dir: str|None = None) -> str:
     """
     base, ext = os.path.splitext(file_path)
     if ext.lower() == ".m4a":
-        print(f"[INFO]: File {file_path} is already in m4a format, skipping conversion.")
+        print(f"[INFO]:    File {file_path} is already in m4a format, skipping conversion.")
         return file_path
     
     if ext.lower() == ".ncm":
@@ -100,6 +110,6 @@ def convert_to_m4a(file_path: str, dest_dir: str|None = None) -> str:
         new_file_path,
         "-y"
     ]
-    print(f"[INFO]: Converting {file_path} to m4a format...")
+    print(f"[INFO]:    Converting {file_path} to m4a format...")
     subprocess.run(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return new_file_path
