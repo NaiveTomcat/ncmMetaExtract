@@ -14,6 +14,19 @@ def get_type_from_cover_path(cover_path: str) -> AtomDataType:
         else:
             raise ValueError(f"Unsupported cover image format for file: {cover_path}")
 
+def get_image_format_from_bytes(data: bytes) -> AtomDataType:
+    """
+    Detect image format from raw bytes using magic numbers.
+    Returns MP4Cover format constant.
+    """
+    if data.startswith(b"\xFF\xD8\xFF"):  # JPEG magic number
+        return MP4Cover.FORMAT_JPEG
+    elif data.startswith(b"\x89PNG\r\n\x1a\n"):  # PNG magic number
+        return MP4Cover.FORMAT_PNG
+    else:
+        raise ValueError("Unsupported image format in downloaded cover")
+
+
 def process_lyrics(lyric: str, sub_lyric: str) -> str:
     """
     Combine the main lyric and sub lyric line by line to create a combined lyric string.
@@ -25,8 +38,8 @@ def process_lyrics(lyric: str, sub_lyric: str) -> str:
     """
     
     def is_valid_timestamp_line(line: str) -> bool:
-        """Check if a line has a valid timestamp format [mm:ss.xx]"""
-        match = re.match(r'^\[\d{2}:\d{2}\.\d{2}\]', line)
+        """Check if a line has a valid timestamp format [mm:ss.xxx]."""
+        match = re.match(r'^\[\d{2}:\d{2}\.\d+\]', line)
         return match is not None
     
     def extract_timestamp_and_text(line: str) -> tuple[str, str] | None:

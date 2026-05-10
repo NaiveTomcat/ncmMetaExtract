@@ -1,6 +1,7 @@
 import dataclasses
 import metadata
 import os
+import unicodedata
 
 @dataclasses.dataclass
 class Song:
@@ -23,8 +24,12 @@ class Song:
         candidates:list[str] = []
         for root, _, files in os.walk(base_dir):
             for file in files:
-                if file.lower().endswith(supported_extensions) and self.metadata.title.lower() in file.lower():
+                if file.lower().endswith(supported_extensions) and unicodedata.normalize('NFC', self.metadata.title.lower()) in unicodedata.normalize('NFC', file.lower()):
                     candidates.append(os.path.join(root, file))
+
+        # print(f"[DEBUG]:   Found {len(candidates)} candidate files for title '{self.metadata.title}' in {base_dir}")
+        # print(f"[DEBUG]:   Candidates: {candidates}")
+        # input("Press Enter to continue...")  # Debug pause to inspect candidates
         
         if not candidates:
             return None
@@ -35,7 +40,7 @@ class Song:
             return self.file_path
         
         # Filter candidates by artist
-        artist_candidates = [c for c in candidates if self.metadata.artist.lower() in c.lower()]
+        artist_candidates = [c for c in candidates if unicodedata.normalize('NFC', self.metadata.artist.lower()) in unicodedata.normalize('NFC', c.lower())]
         if len(artist_candidates) == 1:
             self.file_path = artist_candidates[0]
             return self.file_path

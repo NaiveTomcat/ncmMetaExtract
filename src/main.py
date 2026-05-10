@@ -20,12 +20,20 @@ def main():
     batch_parser.add_argument("--dest", help="Destination directory for output files (optional)")
     batch_parser.add_argument("--delete-orphaned-covers", action="store_true", help="Delete cover files if corresponding music file is not found")
     
+    # Track list mode - process tracks from a playlist JSON file
+    track_list_parser = subparsers.add_parser("track-list", help="Process tracks from a NetEase Cloud Music playlist JSON file")
+    track_list_parser.add_argument("track_list_path", help="Path to the track_list.json file")
+    track_list_parser.add_argument("base_dir", help="Base directory to search for music files")
+    track_list_parser.add_argument("--dest", help="Destination directory for output files (optional)")
+    
     args = parser.parse_args()
     
     if args.mode == "single":
         processor.process_song(args.cover_path, args.base_dir, dest=args.dest)
     elif args.mode == "batch":
         process_batch(args.cover_dir, args.base_dir, args.dest, delete_orphaned=args.delete_orphaned_covers)
+    elif args.mode == "track-list":
+        processor.process_track_list(args.track_list_path, args.base_dir, dest=args.dest)
     else:
         parser.print_help()
 
