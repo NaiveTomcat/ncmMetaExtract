@@ -85,6 +85,8 @@ def process_lyrics(lyric: str, sub_lyric: str) -> str:
         else:
             # Only sub lyrics have content
             combined_lines.extend(sub_texts)
+        # Add a blank line after each line of lyrics
+        combined_lines.append("")
     
-    return "\n\n".join(combined_lines)
+    return "\n".join(combined_lines)
 
