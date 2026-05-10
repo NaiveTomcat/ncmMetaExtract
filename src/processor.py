@@ -64,6 +64,12 @@ def process_m4a_file(file_path: str, meta: metadata.Metadata, dest: str | None =
     audio["\xa9ART"] = meta.artist
     audio["\xa9alb"] = meta.album
 
+    # Set "aART" (album artist) to "Various Artists" 
+    # since we don't have specific album artist information 
+    # and this can help with organization in Apple Music 
+    # when multiple artists are involved in an album.
+    audio["aART"] = "Various Artists"
+
     combined_lyric = process_lyrics(meta.lyric, meta.sub_lyric)
     if combined_lyric:
         audio["\xa9lyr"] = combined_lyric

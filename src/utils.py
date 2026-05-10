@@ -38,7 +38,7 @@ def process_lyrics(lyric: str, sub_lyric: str) -> str:
     
     if sub_lyric == "":
         # Filter lines with valid timestamps and strip them
-        return "\n".join([
+        return "\n\n".join([
             line.split("]", 1)[-1] 
             for line in lyric.splitlines() 
             if is_valid_timestamp_line(line)
